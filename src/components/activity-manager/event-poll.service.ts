@@ -19,7 +19,8 @@ export class EventPollService extends BaseService {
     super(EventPollService.name);
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS) // SET to run as often as needed
+  // @Cron(CronExpression.EVERY_5_SECONDS) // For testing
+  @Cron(CronExpression.EVERY_10_MINUTES) // SET to run as often as needed
   async fetchEvents() {
     this.logger.log('Fetching events');
     await this.activityService.fetchEvents();
