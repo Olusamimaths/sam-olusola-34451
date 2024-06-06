@@ -3,11 +3,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import configuration from './config/configuration';
-import { validationSchema } from './config';
+import { DbConfig, validationSchema } from './config';
 import { BullModule } from '@nestjs/bull';
+import { ActivityModule } from './components/activity/activity.module';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from '@/utils/filters/exception-filter';
+import { TokensModule } from './components/tokens/tokens.module';
+import configuration from './config/configuration';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ActivityQueueModule } from './components/activity-manager/activity-manager.module';
 
-const { database: databaseConfig } = configuration();
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,19 +26,28 @@ const { database: databaseConfig } = configuration();
         port: parseInt(process.env.REDIS_PORT),
       },
     }),
-
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: databaseConfig.host,
-      port: databaseConfig.port,
-      username: databaseConfig.username,
-      password: databaseConfig.password,
-      database: databaseConfig.name,
-      entities: databaseConfig.entities,
-      migrations: databaseConfig.migrations,
+      host: DbConfig.host,
+      port: DbConfig.port,
+      username: DbConfig.username,
+      password: DbConfig.password,
+      database: DbConfig.database,
+      entities: DbConfig.entities,
+      migrations: DbConfig.migrations,
     }),
+    ScheduleModule.forRoot(),
+    ActivityModule,
+    TokensModule,
+    ActivityQueueModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+  ],
 })
 export class AppModule {}
