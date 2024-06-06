@@ -6,6 +6,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
 import { validationSchema } from './config';
 import { BullModule } from '@nestjs/bull';
+import { ActivityModule } from './components/activity/activity.module';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from '@/utils/filters/exception-filter';
 
 const { database: databaseConfig } = configuration();
 @Module({
@@ -21,7 +24,6 @@ const { database: databaseConfig } = configuration();
         port: parseInt(process.env.REDIS_PORT),
       },
     }),
-
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: databaseConfig.host,
@@ -32,8 +34,16 @@ const { database: databaseConfig } = configuration();
       entities: databaseConfig.entities,
       migrations: databaseConfig.migrations,
     }),
+
+    ActivityModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+  ],
 })
 export class AppModule {}
