@@ -1,6 +1,6 @@
 import { Injectable, LoggerService } from '@nestjs/common';
 import * as winston from 'winston';
-// import Sentry from 'winston-transport-sentry-node'; -- Can be used in production
+// import Sentry from 'winston-transport-sentry-node'; -- Can be used in real application
 import { winstonOptions } from './winston-config';
 const { combine, timestamp, label, prettyPrint, splat } = winston.format;
 
@@ -30,7 +30,7 @@ export class WinstonLoggerService implements LoggerService {
       transports: [
         new winston.transports.Console(),
         new winston.transports.File(winstonOptions.file),
-        // new Sentry(sentryTransportOptions), => Can be used in production
+        // new Sentry(sentryTransportOptions), => Can be used in real application
       ],
       exitOnError: false,
     });
