@@ -1,12 +1,17 @@
 import { BaseService } from '@/common';
 import { HttpService } from '@/utils/http-service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Activity } from './entities';
-import { Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EventsResponse } from './types';
 import { IHttpResponse } from '@/utils/http-service/types';
+import { ContinuationEntity } from '../activity-manager/entities';
+import { ContinuationKey } from '../activity-manager/types/continuation.key';
+import { InjectQueue } from '@nestjs/bull';
+import { ActivityQueues } from '../activity-manager/enums';
+import { Queue } from 'bull';
 
 @Injectable()
 export class ActivityService extends BaseService {
@@ -15,26 +20,50 @@ export class ActivityService extends BaseService {
     @InjectRepository(Activity)
     private readonly _activityRepository: Repository<Activity>,
     private readonly _configService: ConfigService,
+    private readonly _dataSource: DataSource,
+    @Inject(EntityManager)
+    private readonly _manager: EntityManager,
+    @InjectQueue(ActivityQueues.ACTIVITY_QUEUE)
+    private readonly _activityQueue: Queue,
   ) {
     super(ActivityService.name);
   }
 
-  public async fetchEvents() {
+  public async fetchEvents(): Promise<void> {
     const response = await this._fetchEventsFromReservoir();
 
     this._handleFetchEventsFailed(response);
     const eventsResponse = response.data as EventsResponse;
-    await this._generateActivitiesAndSave(eventsResponse);
 
-    const { continuation } = eventsResponse;
-    return { continuation };
+    await this._activityQueue.add(ActivityQueues.FETCH_EVENTS, eventsResponse, {
+      attempts: 3,
+    });
   }
 
-  private async _generateActivitiesAndSave(eventsResponse: EventsResponse) {
+  public async generateActivitiesFromEventsAndSave(
+    eventsResponse: EventsResponse,
+  ) {
     const activities: Activity[] = await this._getActivitiesFromEvents(
       eventsResponse,
     );
-    await this._activityRepository.save(activities);
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    const manager = queryRunner.manager;
+    try {
+      await manager.save(Activity, activities);
+      await manager.update(
+        ContinuationEntity,
+        { key: ContinuationKey.KEY },
+        { continuation: eventsResponse.continuation },
+      );
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(error);
+      throw new BadRequestException('Failed to save activities');
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   private async _getActivitiesFromEvents(
@@ -72,7 +101,37 @@ export class ActivityService extends BaseService {
   private async _fetchEventsFromReservoir(): Promise<IHttpResponse> {
     const url = this._configService.get<string>('reservoirApiEndpoint');
     const urlWithLimit = `${url}/events/asks/v3?limit=1000`;
+
+    const cont = await this._manager.findOne(ContinuationEntity, {
+      where: { key: ContinuationKey.KEY },
+    });
+    const continuation = cont?.continuation;
+    if (continuation) {
+      urlWithLimit.concat(`&continuation=${continuation}`);
+    }
+
     const response = await this._httpService.get(urlWithLimit);
+
+    const { data } = response;
+
+    if (data.continuation) {
+      await this._upsertContinuationEntity(cont, data);
+    }
     return response;
+  }
+
+  private async _upsertContinuationEntity(cont: ContinuationEntity, data: any) {
+    if (!cont) {
+      const newCont = new ContinuationEntity();
+      newCont.continuation = data.continuation;
+      newCont.key = ContinuationKey.KEY;
+      await this._manager.save(newCont);
+    } else {
+      await this._manager.update(
+        ContinuationEntity,
+        { key: ContinuationKey.KEY },
+        { continuation: data.continuation },
+      );
+    }
   }
 }

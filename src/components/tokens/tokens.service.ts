@@ -20,7 +20,6 @@ export class TokensService extends BaseService {
     const now = new Date();
 
     const expiredListings = await this._getAllExpiredListings(now);
-
     for (const listing of expiredListings) {
       const tokenExists = await this._getTokenForListing(listing);
       if (!tokenExists) {
@@ -62,7 +61,22 @@ export class TokensService extends BaseService {
   }
 
   private async _handleCheckForLowerListing(listing: Activity, now: Date) {
-    const lowestListing = await this._manager
+    const lowestListing = await this._findActiveLowerListing(listing, now);
+    if (lowestListing) {
+      await this._updatePrice({
+        listing,
+        currentPrice: lowestListing.listingPrice,
+      });
+    } else {
+      await this._updatePrice({
+        listing,
+        currentPrice: null,
+      });
+    }
+  }
+
+  private async _findActiveLowerListing(listing: Activity, now: Date) {
+    return await this._manager
       .createQueryBuilder(Activity, 'activity')
       .where(
         'activity.tokenIndex = :index AND activity.contractAddress = :contractAddress AND activity.listingTo >= :now',
@@ -74,33 +88,21 @@ export class TokensService extends BaseService {
       )
       .orderBy('activity.listingPrice', 'ASC')
       .getOne();
-
-    if (lowestListing) {
-      await this._updatePrice({
-        listing,
-        newPrice: lowestListing.listingPrice,
-      });
-    } else {
-      await this._updatePrice({
-        listing,
-        newPrice: null,
-      });
-    }
   }
 
   private async _updatePrice({
     listing,
-    newPrice,
+    currentPrice,
   }: {
     listing: Activity;
-    newPrice: bigint;
+    currentPrice: bigint;
   }) {
     await this._tokenRepository.update(
       {
         index: listing.tokenIndex,
         contractAddress: listing.contractAddress,
       },
-      { currentPrice: newPrice },
+      { currentPrice },
     );
   }
 }

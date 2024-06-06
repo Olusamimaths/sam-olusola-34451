@@ -10,6 +10,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from '@/utils/filters/exception-filter';
 import { TokensModule } from './components/tokens/tokens.module';
 import configuration from './config/configuration';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ActivityQueueModule } from './components/activity-manager/activity-manager.module';
 
 @Module({
   imports: [
@@ -34,9 +36,10 @@ import configuration from './config/configuration';
       entities: DbConfig.entities,
       migrations: DbConfig.migrations,
     }),
-
+    ScheduleModule.forRoot(),
     ActivityModule,
     TokensModule,
+    ActivityQueueModule,
   ],
   controllers: [AppController],
   providers: [
