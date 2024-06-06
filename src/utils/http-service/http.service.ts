@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { IHttpResponse, IHttpService } from './types';
 import { BaseService } from '@/common';
+import { HttpMessages } from './http.messages';
 
 @Injectable()
 export class HttpService extends BaseService implements IHttpService {
@@ -23,6 +24,7 @@ export class HttpService extends BaseService implements IHttpService {
       });
     } catch (error) {
       this.logger.error(error?.response?.data);
+      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
     }
   }
 
@@ -37,6 +39,7 @@ export class HttpService extends BaseService implements IHttpService {
       });
     } catch (error) {
       this.logger.error(error?.response?.data);
+      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
     }
   }
 
@@ -51,6 +54,7 @@ export class HttpService extends BaseService implements IHttpService {
       });
     } catch (error) {
       this.logger.error(error?.response?.data);
+      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
     }
   }
 
@@ -64,9 +68,7 @@ export class HttpService extends BaseService implements IHttpService {
       });
     } catch (error) {
       this.logger.error(error?.response?.data);
-      throw new BadRequestException(
-        error?.response?.data?.error || 'Bad Request',
-      );
+      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
     }
   }
 
@@ -80,7 +82,7 @@ export class HttpService extends BaseService implements IHttpService {
       });
     } catch (error) {
       this.logger.error(error?.response?.data);
-      throw new BadRequestException();
+      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
     }
   }
 }
