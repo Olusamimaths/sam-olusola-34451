@@ -1,5 +1,5 @@
 ## Project Decisions
-NestJS (https://docs.nestjs.com/) was chosen has it helps to quickly bootstrap a Node.js project in TypeScript, so that I can focus on solving the problem at hand.
+NestJS (https://docs.nestjs.com/) was chosen as it helps to quickly bootstrap a Node.js project in TypeScript, so that I can focus on solving the problem at hand.
 
 ## Requirements
 - Node v18.17.0 or above
