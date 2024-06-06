@@ -3,7 +3,6 @@ import { ActivityService } from './activity.service';
 import { HttpModule } from '@/utils/http-service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Activity } from './entities';
-import { ActivityController } from './activity.controller';
 import { BullModule } from '@nestjs/bull';
 import { ActivityQueues } from '../activity-manager/enums';
 
@@ -16,7 +15,6 @@ import { ActivityQueues } from '../activity-manager/enums';
     }),
   ],
   providers: [ActivityService],
-  controllers: [ActivityController],
   exports: [ActivityService],
 })
 export class ActivityModule {}
