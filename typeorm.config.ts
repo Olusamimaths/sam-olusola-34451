@@ -1,13 +1,15 @@
 import { DataSource } from 'typeorm';
-import { ormconfig } from './src/config/db.config';
+import configuration from 'src/config/configuration';
+
+const { database: databaseConfig } = configuration();
 
 export default new DataSource({
   type: 'mysql',
-  host: ormconfig.host,
-  port: ormconfig.port,
-  username: ormconfig.username,
-  password: ormconfig.password,
-  database: ormconfig.database,
-  entities: ormconfig.entities,
-  migrations: ormconfig.migrations,
+  host: databaseConfig.host,
+  port: databaseConfig.port,
+  username: databaseConfig.username,
+  password: databaseConfig.password,
+  database: databaseConfig.name,
+  entities: databaseConfig.entities,
+  migrations: databaseConfig.migrations,
 });
