@@ -8,6 +8,7 @@ import { BullModule } from '@nestjs/bull';
 import { ActivityModule } from './components/activity/activity.module';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from '@/utils/filters/exception-filter';
+import { TokensModule } from './components/tokens/tokens.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -35,6 +36,7 @@ import configuration from './config/configuration';
     }),
 
     ActivityModule,
+    TokensModule,
   ],
   controllers: [AppController],
   providers: [
