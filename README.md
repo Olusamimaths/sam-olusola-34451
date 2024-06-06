@@ -19,7 +19,7 @@ Say you have created a new entity file e.g `activity.entity.ts`, you can generat
 Say you have choosing the name `CreateActivityEntity` to be the name of he migration file, run:
 
 ```bash
-yarn gen-migration ./src/database/migrations/CreateActivityEntity
+yarn migration:generate
 ```
 
 A file will be generated into the `./src/database/migrations/` folder with the timestamp prepended e.g `./src/database/migrations/1713280153289-CreateActivityEntity.ts`

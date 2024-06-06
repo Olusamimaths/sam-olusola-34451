@@ -23,7 +23,7 @@ export class Activity extends BaseEntity {
     scale: 18,
     nullable: false,
   })
-  listingPrice: string;
+  listingPrice: bigint;
 
   @Column({
     name: 'marker',
@@ -38,14 +38,14 @@ export class Activity extends BaseEntity {
     type: 'bigint',
     nullable: false,
   })
-  listingFrom: number;
+  listingFrom: bigint;
 
   @Column({
     name: 'listing_to',
     type: 'bigint',
-    nullable: false,
+    nullable: true,
   })
-  listingTo: number;
+  listingTo: bigint;
 
   @Column({
     name: 'event_timestamp',

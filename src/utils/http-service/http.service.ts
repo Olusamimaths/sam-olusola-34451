@@ -8,64 +8,22 @@ import { HttpMessages } from './http.messages';
 export class HttpService extends BaseService implements IHttpService {
   constructor() {
     super(HttpService.name);
-    axios.interceptors.response.use((response) => {
-      return response.data;
-    });
   }
 
-  public async post<T = any>(
+  public async get<T = any>(
     url: string,
-    body: Record<string, string | any>,
     headers?: Record<string, string>,
   ): Promise<IHttpResponse<T>> {
     try {
-      return await axios.post<T>(url, body, {
+      const response = await axios.get<T>(url, {
         headers,
       });
-    } catch (error) {
-      this.logger.error(error?.response?.data);
-      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
-    }
-  }
 
-  public async put(
-    url: string,
-    body: Record<string, string | any> | Buffer,
-    headers?: Record<string, string>,
-  ): Promise<IHttpResponse> {
-    try {
-      return await axios.put(url, body, {
-        headers,
-      });
-    } catch (error) {
-      this.logger.error(error?.response?.data);
-      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
-    }
-  }
-
-  public async patch(
-    url: string,
-    body: Record<string, string | any> | Buffer,
-    headers?: Record<string, string>,
-  ): Promise<IHttpResponse> {
-    try {
-      return await axios.patch(url, body, {
-        headers,
-      });
-    } catch (error) {
-      this.logger.error(error?.response?.data);
-      throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
-    }
-  }
-
-  public async get(
-    url: string,
-    headers?: Record<string, string>,
-  ): Promise<IHttpResponse> {
-    try {
-      return await axios.get(url, {
-        headers,
-      });
+      return {
+        status: response.status,
+        data: response.data as T,
+        message: response.statusText,
+      };
     } catch (error) {
       this.logger.error(error?.response?.data);
       throw new BadRequestException(HttpMessages.FAILURE.ERROR_OCCURED);
