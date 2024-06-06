@@ -4,11 +4,15 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormconfig } from './config/db.config';
+import configuration from './config/configuration';
+import { validationSchema } from './config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [configuration],
+      validationSchema,
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
