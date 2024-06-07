@@ -35,8 +35,9 @@ yarn migration:run
 
 ## Code Architecture
 - Use of `exception filters` to handle exceptions and also log them
-- Use of `winston-logger` as the logging library, I added placeholder for sending the logs to Sentry
+- Use of `winston-logger` as the logging library, I added a placeholder for sending the logs to Sentry
 - All services core to the problem are in the `components/` folder
+- TypeOrm was used as a mapper for MySql
 
 ## System Architecture
 
@@ -44,7 +45,9 @@ My solution runs a Cron Job that will fetch events from the API at intervals (ca
 
 The fetch event functionality adds the events to a queue, see the `fetchEvents` method in `./src/components/activity/activity.service.ts`. 
 
-Events are processed in `activity-manager.processor.ts`. To ensure that events are not skipped or missed. A `ContinuationEntity` which will always have just one row holding the current `continuation` key is used. The value of this row is updated everytime a successful fetch from the API is made.
+Events are processed in `activity-manager.processor.ts`. To ensure that events are not skipped or missed. A `ContinuationEntity` with just one row holding the current `continuation` key is used. The value of this row is updated every time a successful fetch from the API is made.
+
+Tokens/NFT listings are managed in the module available in `./src/components/tokens/tokens.service.ts`
 
 Here is a simple activity diagram of the flow:
 ### Flow of cron job
@@ -60,4 +63,9 @@ Here is a simple activity diagram of the flow:
 # Assumptions made
 - The assessment document mentioned `validTo`, but that was not present on the object, and I assumed what was meant was `validUntil`
 - I assumed that `validFrom` will always be set
-- I also assumed that based on the information on the assessment document, I can leave how how the processing of the listing are handled in my implementation
+- I also assumed that based on the information on the assessment document, I could leave how the processing of the listings are handled in my implementation
+
+# Possible Improvements
+- Including tests
+- Sending logs to sentry
+  
